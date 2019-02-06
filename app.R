@@ -12,16 +12,14 @@ tour_all_loc <- read_csv("plot_data/tour_all_loc.csv")
 tour_data_plus_calc <- read_csv("plot_data/tour_data_plus_calc.csv")
 tour_not_cyc_stage <- read_csv("plot_data/tour_not_cyc_stage.csv")
 
-# Filter data for this year
-year_sel <- 1934
-
 # User interface ----
 ui <- fluidPage(
   titlePanel("Tour de France routes"),
   
   sidebarLayout(
     sidebarPanel(
-      numericInput("year", "Select a year", value = 1903, min = 1903, max = 2019, step = 1)
+      numericInput("year", "Select a year", value = 1903, min = 1903, max = 2019, step = 1),
+      sliderInput("year_range", "Select years to compare to", min = 1903, max = 2019, step = 1, value = c(1903, 1904))
     ),
     mainPanel(plotOutput("plot"))
   )
@@ -29,31 +27,54 @@ ui <- fluidPage(
 
 # Server logic ----
 server <- function(input, output) {
-  
-  tour_all_loc_y <-
+
+# Filter plot data for single year    
+  loc_1 <-
     reactive({
       filter(tour_all_loc, year == input$year)
     })
-  tour_data_plus_calc_y <-
+  cyc_1 <-
     reactive({
       filter(tour_data_plus_calc, year == input$year)
     })
-  tour_not_cyc_stage_y <-
+  not_cyc_1 <-
     reactive({
       filter(tour_not_cyc_stage, year == input$year)
     })
   
+# Filter plot data for range of years  
+  loc_range <-
+    reactive({
+      filter(tour_all_loc, year >= input$year_range[1], year <= input$year_range[2])
+    })
+  cyc_range <-
+    reactive({
+      filter(tour_data_plus_calc, year >= input$year_range[1], year <= input$year_range[2])
+    })
+  not_cyc_range <-
+    reactive({
+      filter(tour_not_cyc_stage, year >= input$year_range[1], year <= input$year_range[2])
+    })
+  
+# Plot all routes in year range
+  output$plot <- renderPlot({
+   plot_route_range(loc_range(), cyc_range(), not_cyc_range(), loc_1(), cyc_1(), not_cyc_1())
+   })
+
+# Plot route for selected year
  # output$plot <- renderPlot({
-  #  plot_route_year(tour_all_loc_y(), tour_data_plus_calc_y(), tour_not_cyc_stage_y())
+  # plot_route_year(loc_1(), cyc_1(), not_cyc_1())
+   # })
+
+# Plot elevation for selected year  
+  # output$plot <- renderPlot({
+   # plot_route_elev(tour_all_loc_y())
   # })
   
- # output$plot <- renderPlot({
-  # plot_route_elev(tour_all_loc_y())
-#  })
-  
-  output$plot <- renderPlot({
-    plot_stage_wins(tour_data_plus_calc_y())
-  })
+# Plot stage wins for selected year 
+  # output$plot <- renderPlot({
+  #  plot_stage_wins(tour_data_plus_calc_y())
+  # })
   
 }
 

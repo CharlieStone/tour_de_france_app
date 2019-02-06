@@ -79,7 +79,8 @@ tour_all_loc <- dplyr::bind_rows(tour_start_loc, tour_end_loc) %>%
            lat > 41.98 & lat < 43.11 & long > -1.69 & long < 2.78 ~ "Pyrenees",
            lat > 44.93 & lat < 45.92 & long > 2.41 & long < 3.08 ~ "Massif Central",
            TRUE ~ "Other"
-           )
+           ),
+         place_elev_1km = if_else(elev > 1000, place, "")
          )
          
 
