@@ -5,7 +5,7 @@ library(maps)
 library(mapproj)
 
 # Source plot functions
-source("plot_functions.R")
+source("plot_functions_2.R")
 
 # Load data
 tour_all_loc <- read_csv("plot_data/tour_all_loc.csv")
@@ -43,10 +43,6 @@ server <- function(input, output) {
     })
   
 # Filter plot data for range of years  
-  loc_range <-
-    reactive({
-      filter(tour_all_loc, year >= input$year_range[1], year <= input$year_range[2])
-    })
   cyc_range <-
     reactive({
       filter(tour_data_plus_calc, year >= input$year_range[1], year <= input$year_range[2])
@@ -56,9 +52,15 @@ server <- function(input, output) {
       filter(tour_not_cyc_stage, year >= input$year_range[1], year <= input$year_range[2])
     })
   
-# Plot all routes in year range
+# Tour routes plot
+  cntry_plot <- reactive({plot_country()}) 
+  
+  range_plot <- reactive({plot_route_range(cyc_range(), not_cyc_range(), cntry_plot())})
+  
+  all_plot <- reactive({plot_route_year(loc_1(), cyc_1(), not_cyc_1(), range_plot())})
+  
   output$plot <- renderPlot({
-   plot_route_range(loc_range(), cyc_range(), not_cyc_range(), loc_1(), cyc_1(), not_cyc_1())
+   all_plot()
    })
 
 # Plot route for selected year

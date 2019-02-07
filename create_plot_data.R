@@ -30,8 +30,7 @@ tour_not_cyc_stage <- tour_data_plus_calc %>%
   mutate(end_prev_lat = if_else(date == min(date), 1E9, lag(end_lat)),
          end_prev_long = if_else(date == min(date), 1E9, lag(end_long))) %>%
   ungroup() %>%
-  filter(end_prev_lat != 1E9) %>%
-  select(year, end_prev_lat, end_prev_long, start_lat, start_long)
+  filter(end_prev_lat != 1E9) 
 
 # tour_all_loc (each row is a start or end location of a stage of the Tour, instead of each row being a stage)
 tour_start_loc <- tour_data_plus_calc %>%
