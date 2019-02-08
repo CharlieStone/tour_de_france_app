@@ -33,8 +33,8 @@ dev.off()
 
 # Remove whitespace and turn images into animation
 animation <- img_2 %>%
-  image_animate(fps = 5)
+  image_animate(fps = 10)
 
 print(animation)
 
-image_write(animation, "tour_routes_slow_5_fps.gif")
+image_write(animation, "tour_routes_10_fps.gif")

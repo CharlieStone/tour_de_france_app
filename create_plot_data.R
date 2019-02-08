@@ -11,15 +11,29 @@ tour_data_plus_calc <- tour_data %>%
          elev_change = end_elev - start_elev,
          elev_mean = (start_elev + end_elev)/2,
          winner_name_short = if_else(is.na(winner_country), winner_name, str_replace(winner_name, "^[A-Z].* ", "")),
-                winner_label = paste0(winner_name_short, if_else(is.na(winner_country), "",  paste0(" (", winner_country, ")")))
+                winner_label = paste0(winner_name_short, if_else(is.na(winner_country), "",  paste0(" (", winner_country, ")"))),
+         start_mt = case_when(
+           start_lat > 43.28 & start_lat < 47.38 & start_long > 5.24 & start_long < 7.60 ~ "Alps",
+           start_lat > 41.98 & start_lat < 43.11 & start_long > -1.69 & start_long < 2.78 ~ "Pyrenees",
+           start_lat > 44.93 & start_lat < 45.92 & start_long > 2.41 & start_long < 3.08 ~ "Massif Central",
+           TRUE ~ "Other"
+         ),
+         end_mt = case_when(
+           end_lat > 43.28 & end_lat < 47.38 & end_long > 5.24 & end_long < 7.60 ~ "Alps",
+           end_lat > 41.98 & end_lat < 43.11 & end_long > -1.69 & end_long < 2.78 ~ "Pyrenees",
+           end_lat > 44.93 & end_lat < 45.92 & end_long > 2.41 & end_long < 3.08 ~ "Massif Central",
+           TRUE ~ "Other"
+         ),
+         mt_range = if_else(start_elev > end_elev, start_mt, end_mt),
+         mt_range = factor(mt_range, levels = unique(mt_range))
          ) %>%
   filter(terrain_group != "Rest day") %>%
   group_by(year) %>%
   arrange(date) %>%
-  mutate(tour_progress = stage_number / max(stage_number),
-         counter = 1,
+  mutate(counter = 1,
          section_number = cumsum(counter),
-         tour_section_progress = section_number / max(section_number)) %>%
+         progress_end = section_number / max(section_number),
+         progress_start = if_else(section_number == 1, 0, lag(progress_end))) %>%
   ungroup() %>%
   select(-counter)
 
@@ -68,20 +82,9 @@ tour_end_loc <- tour_data_plus_calc %>%
   mutate(position = "end")
 
 tour_all_loc <- dplyr::bind_rows(tour_start_loc, tour_end_loc) %>%
-  arrange(year, tour_section_progress, position) %>%
+  arrange(year, progress_end, desc(position)) %>%
   group_by(year) %>%
-  mutate(end_x = lead(tour_section_progress),
-         end_y = lead(elev)) %>%
-  ungroup() %>%
-  mutate(mountain_range = case_when(
-           lat > 43.28 & lat < 47.38 & long > 5.24 & long < 7.60 ~ "Alps",
-           lat > 41.98 & lat < 43.11 & long > -1.69 & long < 2.78 ~ "Pyrenees",
-           lat > 44.93 & lat < 45.92 & long > 2.41 & long < 3.08 ~ "Massif Central",
-           TRUE ~ "Other"
-           ),
-         place_elev_1km = if_else(elev > 1000, place, "")
-         )
-         
+  ungroup() 
 
 # Save files as .csv files in plot_data folder.
 write_csv(tour_data_plus_calc, "plot_data/tour_data_plus_calc.csv")
